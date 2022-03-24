@@ -1,0 +1,11 @@
+# fly.toml file generated for keydb-test on 2022-03-22T13:00:19+01:00
+
+app = "keydb-test"
+
+[metrics]
+  path = "/metrics"
+  port = 9121
+
+[mount]
+  destination = "/data"
+  source = "keydb_data"
