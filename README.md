@@ -33,7 +33,7 @@ fly deploy
 Finally, we'll want to deploy an application in the same regions and connect to the region-local KeyDB.
 
 That can be done by building the instance hostname using the region and application name. For example,
-the Chicago instance is available at `redis://password:password@ord.multimaster-keydb-example.internal`.
+the Chicago instance is available at `redis://password:password@ord.$FLY_APP_NAME.internal`.
 
 ## keydb-cli
 
