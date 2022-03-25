@@ -1,6 +1,7 @@
-# fly.toml file generated for keydb-test on 2022-03-22T13:00:19+01:00
+# fly.toml file generated for keydb-test on 2022-03-25T13:20:32+01:00
 
 app = "keydb-test"
+
 
 [metrics]
   path = "/metrics"

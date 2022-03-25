@@ -1,3 +1,0 @@
-keydb: /fly/start_keydb.sh
-prom_exporter: /fly/start_prom_exporter.sh
-detect_peers: /fly/detect_peers_periodically.sh
