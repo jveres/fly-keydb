@@ -18,7 +18,7 @@ detect_peers()
   if ( ps aux | grep -v grep | grep -q keydb-server ); then
     info=$(keydb-cli info replication)
     membercount=$(echo "$info" | grep "_host:" | wc -l)
-    echo "Detected replicas: $membercount"
+    echo "-- replicas: $membercount"
     for i in $others; do
       if ! (echo $info | grep -q "_host:$i"); then # check masters
         echo "Adding peer $i with keydb-cli"
@@ -36,7 +36,7 @@ remove_from_peers()
   if ( ps aux | grep -v grep | grep -q keydb-server ); then
     info=$(keydb-cli info replication)
     membercount=$(echo "$info" | grep "_host:" | wc -l)
-    echo "Detected replicas: $membercount"
+    echo "-- replicas: $membercount"
     for i in $others; do
       if (echo $info | grep -q "_host:$i"); then # check masters
         echo "Removing from peer $i with keydb-cli"
@@ -48,7 +48,7 @@ remove_from_peers()
 
 shutdown() 
 { 
-  echo "Shutdown signal!"
+  echo "Shutdown signal received!"
   remove_from_peers
 }
 
