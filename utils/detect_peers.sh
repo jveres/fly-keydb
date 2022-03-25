@@ -1,7 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "Checking for new peer instances every 5 seconds..." 
+refresh=5
+echo "Checking for new peer instances every $refresh seconds..."
 
 # Auth password for keydb-cli
 export REDISCLI_AUTH=$(echo $KEYDB_PASSWORD)
@@ -56,5 +57,5 @@ trap shutdown SIGTERM SIGINT
 # Check periodically
 while true; do
   detect_peers
-  sleep 5
+  sleep $refresh
 done
