@@ -1,60 +1,37 @@
 #!/bin/sh
-set -e
 
 refresh=5
 echo "Checking for new peer instances every $refresh seconds..."
-
-# Auth password for keydb-cli
 export REDISCLI_AUTH=$(echo $KEYDB_PASSWORD)
-
-# Extract local IPV6 address
 ip=$(grep fly-local-6pn /etc/hosts | awk '{print $1}')
 
 detect_peers()
 {
-  # Extract peer KeyDB server IPV6 addresses
-  others=$( (dig aaaa global.$FLY_APP_NAME.internal @fdaa::3 +short | grep -v "$ip") || echo "")
-  # Add new peers using the CLI to avoid restarting KeyDB
+  peers=$( (dig aaaa global.$FLY_APP_NAME.internal @fdaa::3 +short | grep -v "$ip") || echo "")
+  peercount=$(echo "$peers" | grep -v ^$ | wc -l)
   if ( ps aux | grep -v grep | grep -q keydb-server ); then
-    info=$(keydb-cli info replication)
-    membercount=$(echo "$info" | grep "_host:" | wc -l)
-    echo "-- replicas: $membercount"
-    for i in $others; do
-      if ! (echo $info | grep -q "_host:$i"); then # check masters
-        echo "Adding peer $i with keydb-cli"
-        keydb-cli replicaof $i 6379
+    replicas=$(keydb-cli info replication | grep "_host:")
+    replicacount=$(echo "$replicas" | grep -v ^$ | wc -l)
+    echo "-- peer count: $peercount, replica count: $replicacount"
+    for p in $peers; do
+      peer=$(echo "$p" | tr -d '\n')
+      #echo "-- checking peer: $peer"
+      if !(echo $replicas | grep -q "$peer"); then
+        echo "-- adding replica $peer"
+        keydb-cli replicaof $peer 6379
+      fi
+    done
+    for r in $replicas; do
+      replica=$(echo $r | awk '{ sub("\r$", ""); split($0,a,"_host:"); print a[2] }')
+      #echo "-- checking replica: $replica"
+      if !(echo $peers | grep -q "$replica"); then
+        echo "-- removing replica $replica"
+        keydb-cli replicaof remove $replica 6379
       fi
     done
   fi
 }
 
-remove_from_peers()
-{
-  # Extract peer KeyDB server IPV6 addresses
-  others=$( (dig aaaa global.$FLY_APP_NAME.internal @fdaa::3 +short | grep -v "$ip") || echo "")
-  # Remove from peers using the CLI to avoid restarting KeyDB
-  if ( ps aux | grep -v grep | grep -q keydb-server ); then
-    info=$(keydb-cli info replication)
-    membercount=$(echo "$info" | grep "_host:" | wc -l)
-    echo "-- replicas: $membercount"
-    for i in $others; do
-      if (echo $info | grep -q "_host:$i"); then # check masters
-        echo "Removing from peer $i with keydb-cli"
-        keydb-cli -h $i replicaof remove $ip 6379
-      fi
-    done
-  fi
-}
-
-shutdown() 
-{ 
-  echo "Shutdown signal received!"
-  remove_from_peers
-}
-
-trap shutdown SIGTERM SIGINT
-
-# Check periodically
 while true; do
   detect_peers
   sleep $refresh

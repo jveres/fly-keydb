@@ -1,3 +1,2 @@
 keydb: /usr/bin/start_keydb.sh
-prom_exporter: /usr/bin/redis_exporter --redis.addr=fly-local-6pn --redis.password=$KEYDB_PASSWORD
 detect_peers: /usr/bin/detect_peers.sh
